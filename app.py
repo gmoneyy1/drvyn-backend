@@ -119,8 +119,14 @@ def test():
 
 @app.route("/health")
 def health():
-    print("Health check endpoint accessed")
-    return jsonify({"status": "healthy", "message": "Backend is running"})
+    try:
+        print("Health check endpoint accessed")
+        # Test database connection
+        db.session.execute("SELECT 1")
+        return jsonify({"status": "healthy", "message": "Backend is running", "database": "connected"})
+    except Exception as e:
+        print(f"Health check error: {e}")
+        return jsonify({"status": "unhealthy", "message": "Backend is running but database error", "error": str(e)}), 500
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -533,6 +539,11 @@ if __name__ == "__main__":
     app.run(debug=True, port=8000, host='0.0.0.0')
 
 # Initialize database on startup
-with app.app_context():
-    db.create_all()
-    print("Database initialized successfully") 
+try:
+    with app.app_context():
+        db.create_all()
+        print("Database initialized successfully")
+        print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+except Exception as e:
+    print(f"Database initialization error: {e}")
+    # Continue anyway - the app might work without database for basic endpoints 
