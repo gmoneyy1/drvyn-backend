@@ -1,1 +1,1 @@
-web: python3 -c "from app import app, db; app.app_context().push(); db.create_all()" && gunicorn app:app 
+web: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 
