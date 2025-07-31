@@ -43,8 +43,7 @@ CORS(app, supports_credentials=True, origins=[
     "http://localhost:8080", 
     "http://localhost:5173", 
     "http://localhost:3000",
-    "https://your-frontend-domain.vercel.app",  # Replace with your actual Vercel domain
-    "https://drvyn-daily-dashboard.vercel.app"  # Common Vercel domain pattern
+    "https://drvyn-demo.vercel.app"  # Your actual Vercel frontend URL
 ])
 
 db = SQLAlchemy(app)
