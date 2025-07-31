@@ -31,10 +31,11 @@ if not os.getenv("FLASK_SECRET_KEY"):
 else:
     app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY")
 
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///drvyn.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 print(f"AI_PROVIDER: {AI_PROVIDER}")
 print(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
-
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///drvyn.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Enable CORS
@@ -132,7 +133,8 @@ def health():
         print("Health check endpoint accessed")
         # Test database connection only if available
         if app.config.get('DATABASE_AVAILABLE', False):
-            db.session.execute("SELECT 1")
+            from sqlalchemy import text
+            db.session.execute(text("SELECT 1"))
             return jsonify({"status": "healthy", "message": "Backend is running", "database": "connected"})
         else:
             return jsonify({"status": "healthy", "message": "Backend is running", "database": "not available"})
