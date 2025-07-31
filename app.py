@@ -109,11 +109,18 @@ def clear_rate_limits():
 # Routes
 @app.route("/")
 def index():
+    print("Root endpoint accessed")
     return jsonify({"message": "Drvyn API is running", "status": "ok"})
 
 @app.route("/test")
 def test():
+    print("Test endpoint accessed")
     return jsonify({"message": "Test endpoint working", "cors": "enabled"})
+
+@app.route("/health")
+def health():
+    print("Health check endpoint accessed")
+    return jsonify({"status": "healthy", "message": "Backend is running"})
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
