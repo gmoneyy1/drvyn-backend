@@ -557,6 +557,22 @@ try:
         db.create_all()
         print("Database initialized successfully")
         print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+        
+        # Create demo user if it doesn't exist
+        from werkzeug.security import generate_password_hash
+        demo_user = User.query.filter_by(username='demo').first()
+        if not demo_user:
+            demo_user = User(
+                username='demo',
+                email='demo@example.com',
+                password_hash=generate_password_hash('demo123')
+            )
+            db.session.add(demo_user)
+            db.session.commit()
+            print("Demo user created: demo / demo123")
+        else:
+            print("Demo user already exists")
+            
 except Exception as e:
     print(f"Database initialization error: {e}")
     print("Continuing without database - basic endpoints will work")
