@@ -19,7 +19,21 @@ import logging
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", str(uuid4()))
+# Configure AI providers
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+AI_PROVIDER = os.getenv("AI_PROVIDER", "cohere")
+
+# Add fallback for missing secret key
+if not os.getenv("FLASK_SECRET_KEY"):
+    print("Warning: FLASK_SECRET_KEY not set, using random key")
+    app.config['SECRET_KEY'] = str(uuid4())
+else:
+    app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY")
+
+print(f"AI_PROVIDER: {AI_PROVIDER}")
+print(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
+
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///drvyn.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -31,11 +45,6 @@ CORS(app, supports_credentials=True, origins=[
     "https://your-frontend-domain.vercel.app",  # Replace with your actual Vercel domain
     "https://drvyn-daily-dashboard.vercel.app"  # Common Vercel domain pattern
 ])
-
-# Configure AI providers
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-COHERE_API_KEY = os.getenv("COHERE_API_KEY")
-AI_PROVIDER = os.getenv("AI_PROVIDER", "cohere")
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -121,9 +130,12 @@ def test():
 def health():
     try:
         print("Health check endpoint accessed")
-        # Test database connection
-        db.session.execute("SELECT 1")
-        return jsonify({"status": "healthy", "message": "Backend is running", "database": "connected"})
+        # Test database connection only if available
+        if app.config.get('DATABASE_AVAILABLE', False):
+            db.session.execute("SELECT 1")
+            return jsonify({"status": "healthy", "message": "Backend is running", "database": "connected"})
+        else:
+            return jsonify({"status": "healthy", "message": "Backend is running", "database": "not available"})
     except Exception as e:
         print(f"Health check error: {e}")
         return jsonify({"status": "unhealthy", "message": "Backend is running but database error", "error": str(e)}), 500
@@ -546,4 +558,8 @@ try:
         print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
 except Exception as e:
     print(f"Database initialization error: {e}")
-    # Continue anyway - the app might work without database for basic endpoints 
+    print("Continuing without database - basic endpoints will work")
+    # Set a flag to indicate database is not available
+    app.config['DATABASE_AVAILABLE'] = False
+else:
+    app.config['DATABASE_AVAILABLE'] = True 
