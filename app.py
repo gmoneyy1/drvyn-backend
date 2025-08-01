@@ -43,7 +43,9 @@ CORS(app, supports_credentials=True, origins=[
     "http://localhost:8080", 
     "http://localhost:5173", 
     "http://localhost:3000",
-    "https://drvyn-demo.vercel.app"  # Your actual Vercel frontend URL
+    "https://drvyn-demo.vercel.app",  # Your actual Vercel frontend URL
+    "https://drvyn-demo-git-main-georges-projects-2f3c7ad4.vercel.app",  # Git branch preview
+    "https://drvyn-demo-4h8dwscow-georges-projects-2f3c7ad4.vercel.app"  # Deployment-specific URL
 ])
 
 db = SQLAlchemy(app)
@@ -297,13 +299,17 @@ def delete_event(event_id):
 @login_required
 def get_user():
     try:
-        return jsonify({
+        print(f"get_user called for user: {current_user.username}")
+        user_data = {
             "id": current_user.id,
             "username": current_user.username,
             "email": current_user.email,
             "timezone": current_user.timezone
-        })
+        }
+        print(f"Returning user data: {user_data}")
+        return jsonify(user_data)
     except Exception as e:
+        print(f"Error fetching user: {e}")
         app.logger.error(f"Error fetching user: {e}")
         return jsonify({"error": "Failed to fetch user data"}), 500
 
